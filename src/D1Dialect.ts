@@ -15,7 +15,12 @@ import {
 } from "kysely";
 
 import type { D1Database, D1Result } from "@cloudflare/workers-types";
-import { D1ExecuteError, NotImplementedError } from "./lib/errors";
+import {
+  D1ExecuteError,
+  ErrorWithCause,
+  isErrorWithCause,
+  NotImplementedError,
+} from "./lib/errors";
 
 export class D1Dialect implements Dialect {
   #config: D1DialectConfig;
@@ -98,8 +103,8 @@ class D1Connection implements DatabaseConnection {
       try {
         result = await boundStatements.all();
       } catch (e) {
-        if (e instanceof Error) {
-          throw new D1ExecuteError(e.message);
+        if (isErrorWithCause(e) && e.cause?.message) {
+          throw new D1ExecuteError(e.cause.message);
         }
         throw new D1ExecuteError("Unknown error.");
       }
@@ -113,11 +118,12 @@ class D1Connection implements DatabaseConnection {
       try {
         result = await boundStatements.run();
       } catch (e) {
-        if (e instanceof Error) {
-          throw new D1ExecuteError(e.message);
+        if (isErrorWithCause(e) && e.cause?.message) {
+          throw new D1ExecuteError(e.cause.message);
         }
         throw new D1ExecuteError("Unknown error.");
       }
+
       if (result.error) {
         throw new D1ExecuteError(result.error);
       }

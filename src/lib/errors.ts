@@ -11,3 +11,18 @@ export class NotImplementedError extends Error {
     this.name = "NotImplementedError";
   }
 }
+
+export class ErrorWithCause extends Error {
+  cause?: Error;
+
+  constructor(message: string) {
+    super(message);
+    this.name = "ErrorWithCause";
+  }
+}
+
+export function isErrorWithCause(e: unknown): e is ErrorWithCause {
+  return (
+    e instanceof Error && (e as ErrorWithCause).cause?.message !== undefined
+  );
+}
