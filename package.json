@@ -10,6 +10,21 @@
   "repository": {
     "url": "https://github.com/gawdn/kysely-cloudflare-d1"
   },
+  "bugs": {
+    "url": "https://github.com/gawdn/kysely-cloudflare-d1/issues"
+  },
+  "homepage": "https://github.com/kysely-cloudflare-d1#readme",
+  "release": {
+    "branches": [
+      "main"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist/**/*"
+  ],
   "exports": {
     ".": {
       "import": {
