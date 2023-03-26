@@ -14,7 +14,8 @@ import {
   TransactionSettings,
 } from "kysely";
 
-import type { D1Database } from "@cloudflare/workers-types";
+import type { D1Database, D1Result } from "@cloudflare/workers-types";
+import { D1ExecuteError, NotImplementedError } from "./lib/errors";
 
 export class D1Dialect implements Dialect {
   #config: D1DialectConfig;
@@ -57,7 +58,7 @@ class D1Driver implements Driver {
       return this.#connection;
     }
 
-    throw new Error(
+    throw new NotImplementedError(
       "Couldn't set up a D1 connection. Check that your D1 database is bound correctly."
     );
   }
@@ -65,19 +66,19 @@ class D1Driver implements Driver {
     _connection: DatabaseConnection,
     _settings: TransactionSettings
   ) {
-    throw new Error("Transactions not supported on D1.");
+    throw new NotImplementedError("Transactions not supported on D1.");
   }
   async commitTransaction(_connection: DatabaseConnection) {
-    throw new Error("Transactions not supported on D1.");
+    throw new NotImplementedError("Transactions not supported on D1.");
   }
   async rollbackTransaction(_connection: DatabaseConnection) {
-    throw new Error("Transactions not supported on D1.");
+    throw new NotImplementedError("Transactions not supported on D1.");
   }
   async releaseConnection(_connection: DatabaseConnection) {
     return;
   }
   async destroy() {
-    throw new Error("Cannot destroy D1 database.");
+    throw new NotImplementedError("Cannot destroy D1 database.");
   }
 }
 
@@ -92,13 +93,34 @@ class D1Connection implements DatabaseConnection {
     const stmt = this.#db.prepare(sql);
     const boundStatements = stmt.bind(...parameters);
 
+    let result: D1Result<unknown>;
     if (query.kind === "SelectQueryNode") {
-      const result = await boundStatements.all();
+      try {
+        result = await boundStatements.all();
+      } catch (e) {
+        if (e instanceof Error) {
+          throw new D1ExecuteError(e.message);
+        }
+        throw new D1ExecuteError("Unknown error.");
+      }
+      if (result.error) {
+        throw new D1ExecuteError(result.error);
+      }
       return {
         rows: result.results as R[],
       };
     } else {
-      const result = await boundStatements.run();
+      try {
+        result = await boundStatements.run();
+      } catch (e) {
+        if (e instanceof Error) {
+          throw new D1ExecuteError(e.message);
+        }
+        throw new D1ExecuteError("Unknown error.");
+      }
+      if (result.error) {
+        throw new D1ExecuteError(result.error);
+      }
       return {
         rows: [],
         numAffectedRows: result.meta.changes,
