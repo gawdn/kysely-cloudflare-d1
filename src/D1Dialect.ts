@@ -14,6 +14,8 @@ import {
   TransactionSettings,
 } from "kysely";
 
+import type { D1Database } from "@cloudflare/workers-types";
+
 export class D1Dialect implements Dialect {
   #config: D1DialectConfig;
   constructor(config: D1DialectConfig) {
@@ -39,22 +41,26 @@ export interface D1DialectConfig {
 }
 
 class D1Driver implements Driver {
-  #db: D1Database;
-  #connection: D1Connection;
+  #db?: D1Database;
+  #connection?: D1Connection;
   #config: D1DialectConfig;
 
   constructor(config: D1DialectConfig) {
     this.#config = config;
   }
-
   async init() {
     this.#db = this.#config.database;
   }
   async acquireConnection(): Promise<DatabaseConnection> {
-    this.#connection = new D1Connection(this.#db);
-    return this.#connection;
-  }
+    if (this.#db) {
+      this.#connection = new D1Connection(this.#db);
+      return this.#connection;
+    }
 
+    throw new Error(
+      "Couldn't set up a D1 connection. Check that your D1 database is bound correctly."
+    );
+  }
   async beginTransaction(
     _connection: DatabaseConnection,
     _settings: TransactionSettings

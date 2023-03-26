@@ -1,13 +1,43 @@
 {
   "name": "@gawdn/kysely-cloudflare-d1",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Cloudflare D1 bindings for Kysely",
-  "main": "src/D1Dialect.ts",
+  "main": "./dist/cjs/index.js",
+  "types": "./dist/cjs/types/index.d.ts",
+  "engines": {
+    "node": "^18.0.0"
+  },
+  "repository": {
+    "url": "https://github.com/gawdn/kysely-cloudflare-d1"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/types/index.d.ts",
+        "default": "./dist/esm/index.mjs"
+      },
+      "require": {
+        "types": "./dist/cjs/types/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "keywords": [
+    "d1",
+    "cloudflare",
+    "kysely"
+  ],
   "author": "gawdn",
   "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf ./dist",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc -p ./tsconfig.esm.json && mv dist/esm/index.js dist/esm/index.mjs",
+    "build:cjs": "tsc -p ./tsconfig.cjs.json"
+  },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230321.0",
-    "@types/node": "^18.15.10"
+    "typescript": "^5.0.2"
   },
   "dependencies": {
     "kysely": "^0.23.5"
