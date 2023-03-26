@@ -2,6 +2,12 @@
 
 A Kysely dialect for [Cloudflare D1](https://developers.cloudflare.com/d1/).
 
+## Installation
+
+```
+npm install kysely @gawdn/kysely-cloudflare-d1
+```
+
 ## Limitations
 
 - This does not support transactions as Cloudflare D1 does not support transactions in its public API.
